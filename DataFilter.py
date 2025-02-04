@@ -84,6 +84,7 @@ class DataFilter:
     def sort_data(self, key):
         self.data.sort(key=lambda x: x.get(key))
 
+
     def display_data(self):
         for item in self.data:
             print(item)
