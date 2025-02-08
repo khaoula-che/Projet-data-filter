@@ -19,7 +19,7 @@ def save_csv(file,data):
         return
     keys = data[0].keys()
     with open(file, 'w', encoding='utf-8') as f:
-        writer = csv.DictWriter(f, file=keys)
+        writer = csv.DictWriter(f, fieldnames=keys)
         writer.writeheader()
         writer.writerows(data)
 
@@ -44,11 +44,12 @@ def save_xml(file,data) :
     root = ET.Element("root")
     for i in data :
         item = ET.SubElement(root,"item")
-        for key,value in item.items():
+        for key,value in i.items():
             child = ET.SubElement(item,key)
             child.text = str(value)
     tree = ET.ElementTree(root)
     tree.write(file)
+
 def load_yaml(file) :
     with open(file, 'r',encoding='utf-8') as f :
         return yaml.safe_load(f)
@@ -60,9 +61,10 @@ def mean(values) :
     return round(sum(values) / len(values))
 
 def stats(data) :
-    stats ={}
+    stats_result ={}
     for key in data[0].keys():
         values = [item[key] for item in data if key in item]
+
         values_num = []
         values_bool = []
         values_list = []
@@ -79,7 +81,7 @@ def stats(data) :
                 values_list.append(v)
             
         if values_num :
-            stats[key] = { 
+            stats_result[key] = { 
                 'min': min(values_num), 
                 'max': max(values_num),
                 'mean': mean(values_num)
@@ -89,7 +91,7 @@ def stats(data) :
             for v in values_bool : 
                 if str(v).lower() == 'true' :
                     count +=1
-            stats[key] = {
+            stats_result[key] = {
                 'true_parcentage' : round((count / len(values_bool)) * 100),
                 'false_parcentage': round(100 - (count / len(values_bool)) * 100)
             }
@@ -100,12 +102,12 @@ def stats(data) :
                     list_sizes.append(len(eval(v)))
                 else : 
                     list_sizes.append(len(v))
-            stats[key] = {
+            stats_result[key] = {
                 'min_size': round(min(list_sizes), 2),
                 'max_size': round(max(list_sizes),2),
                 'mean_size': mean(list_sizes)
             }
-    return stats
+    return stats_result
 
 file_csv = "data.csv"
 file_json = "data.json"
@@ -116,10 +118,8 @@ data_csv = load_csv(file_csv)
 data_json = load_json(file_json)
 data_xml = load_xml(file_xml)
 data_yaml = load_yaml(file_yaml)
-stats = stats(data_json)
 
-print("données CSV chargées :", data_csv)
-print("données JSON chargées :", data_json)
-print("données XML chargées :", data_xml)
-print("données YAML chargées :", data_yaml)
-print("Statistiques des données :", stats)
+print("Données CSV chargées :", stats(data_csv))
+print("Données JSON chargées :", stats(data_json))
+print("Données XML chargées :", stats(data_xml))
+print("Données YAML chargées :", stats(data_yaml))
