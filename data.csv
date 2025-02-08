@@ -1,4 +1,4 @@
 firstname,lastname,age,apprentice,grades
-Alice,Durand,22,True,"[15, 18, 14]"
-Bob,Lemoine,24,False,"[12, 10, 14]"
-Charlie,Martin,21,True,"[16, 17, 19]"
+Test,Test,22,True,"[15, 18, 14]"
+Jean,Martin,24,False,"[12, 10, 14]"
+Marie,Dupont,21,True,"[16, 17, 19]"
