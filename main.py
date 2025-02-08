@@ -10,6 +10,16 @@ def load_csv(file):
     with open(file, 'r', encoding='utf-8') as f :
         reader = csv.DictReader(f)
         for row in reader : 
+            for key,value in row.items() :
+                if value.startswith("[") and value.endswith("]") :
+                    row[key] = eval(value)
+                
+                elif value.replace('.', '', 1).isdigit() :
+                    if '.' in value :
+                        row[key] = float(value)
+                    else :
+                        row[key] = int(value)
+                   
             data.append(row)
     return data
 
@@ -36,8 +46,18 @@ def load_xml(file):
     root = tree.getroot()
     data = []
     for i in root : 
-        item = {child.tag: child.text for child in i}
-        data.append(item)
+        record = {}
+        for child in i :
+            if child.text.isdigit() :
+                record[child.tag] = int(child.text) 
+            elif child.text.replace('.', '',1).isdigit() :
+                record[child.tag] = float(child.text)
+            elif child.text.startswith("[") and child.text.endswith("]"):
+                record[child.tag] = json.loads(child.text.replace("'", "\""))
+            else :
+                record[child.tag] = child.text
+     
+        data.append(record)
     return data
         
 def save_xml(file,data) :
@@ -57,6 +77,7 @@ def load_yaml(file) :
 def save_yaml(file, data) :
     with open(file,'w', encoding='utf-8') as f :
         yaml.dump(data, f,default_flow_style=False)
+        
 def mean(values) :
     return round(sum(values) / len(values))
 
@@ -109,6 +130,42 @@ def stats(data) :
             }
     return stats_result
 
+def filter_data(data, key, value, operator) :
+    data_filtered = []
+    for item in data :
+        if key in item : 
+            item_value = item[key]
+            if isinstance(item_value, str) and item_value.replace('.', '', 1).isdigit():
+                item_value = float(item_value) if '.' in item_value else int(item_value)
+            
+            # Conversion de value en nombre si possible
+            if isinstance(value, str) and value.replace('.', '', 1).isdigit():
+                value = float(value) if '.' in value else int(value)
+            
+            if isinstance(item_value, str) and isinstance(value,str):
+                if (operator == "==" and item_value == value ) :
+                    data_filtered.append(item)
+                elif (operator == "<" and item_value < value ) :
+                    data_filtered.append(item)
+                elif (operator == ">" and item_value > value ): 
+                    data_filtered.append(item)
+
+            elif isinstance(item_value, (int,float)) :
+                if (operator == "==" and item_value == value ) :
+                    data_filtered.append(item)
+                elif (operator == "<" and item_value < value ) :
+                    data_filtered.append(item)
+                elif (operator == ">" and item_value > value ): 
+                    data_filtered.append(item)
+
+            elif isinstance(item_value, list)  :
+                if (operator =="<" and len(item_value) < value) :
+                    data_filtered.append(item)
+                elif (operator ==">" and len(item_value) > value):
+                    data_filtered.append(item)
+
+    return data_filtered
+
 file_csv = "data.csv"
 file_json = "data.json"
 file_xml = "data.xml"
@@ -123,3 +180,18 @@ print("Données CSV chargées :", stats(data_csv))
 print("Données JSON chargées :", stats(data_json))
 print("Données XML chargées :", stats(data_xml))
 print("Données YAML chargées :", stats(data_yaml))
+
+print("Données CSV filtrées (firstname < 'Marie'):", filter_data(data_csv, "firstname", "Marie", "<"))
+print("Données JSON filtrées (firstname < 'Marie'):", filter_data(data_json, "firstname", "Marie", "<"))
+print("Données XML filtrées (firstname < 'Marie'):", filter_data(data_xml, "firstname", "Marie", "<"))
+print("Données YAML filtrées (firstname < 'Marie'):", filter_data(data_yaml, "firstname", "Marie", "<"))
+
+print("Données CSV filtrées (nombre de notes > 3):", filter_data(data_csv, "grades", 3, ">"))
+print("Données JSON filtrées (nombre de notes > 3):", filter_data(data_json, "grades", 3, ">"))
+print("Données XML filtrées (nombre de notes > 3):", filter_data(data_xml, "grades", 3, ">"))
+print("Données YAML filtrées (nombre de notes > 3):", filter_data(data_yaml, "grades", 3, ">"))
+
+print("Données CSV filtrées (age > 25):", filter_data(data_csv, "age", 25, ">"))
+print("Données JSON filtrées (age > 25):", filter_data(data_json, "age", 25, ">"))
+print("Données XML filtrées (age > 25):", filter_data(data_xml, "age", 25, ">"))
+print("Données YAML filtrées (age > 25):", filter_data(data_yaml, "age", 25, ">"))

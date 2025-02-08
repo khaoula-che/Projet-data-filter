@@ -8,10 +8,10 @@
   lastname: Martin
   age: 22
   apprentice: false
-  grades: [12, 14, 16]
+  grades: [12, 14,9, 16]
 
-- firstname: Marie
+- firstname: Toto
   lastname: Dupont
   age: 21
   apprentice: true
-  grades: [10, 13, 17]
+  grades: [13, 13, 17]
