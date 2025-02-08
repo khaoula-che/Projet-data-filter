@@ -57,18 +57,26 @@ def save_yaml(file, data) :
     with open(file,'w', encoding='utf-8') as f :
         yaml.dump(data, f,default_flow_style=False)
 def mean(values) :
-    return sum(values) / len(values)
+    return round(sum(values) / len(values))
 
 def stats(data) :
     stats ={}
     for key in data[0].keys():
         values = [item[key] for item in data if key in item]
         values_num = []
+        values_bool = []
+        values_list = []
+
         for v in values : 
             if isinstance(v, (int,float)) :
                 values_num.append(v)
             elif isinstance(v,str) and v.replace('.', '',1).isdigit() :
                 values_num.append(float(v))
+            
+            if isinstance(v,bool) or str(v).lower() in ['true', 'false']:
+                values_bool.append(v)
+            if isinstance(v, list) or (isinstance(v, str) and v.startswith('[') and v.endswith(']')) : 
+                values_list.append(v)
             
         if values_num :
             stats[key] = { 
@@ -76,10 +84,6 @@ def stats(data) :
                 'max': max(values_num),
                 'mean': mean(values_num)
         }
-        values_bool = []
-        for v in values : 
-            if isinstance(v,bool) or str(v).lower() in ['true', 'false']:
-                values_bool.append(v)
         if values_bool : 
             count = 0
             for v in values_bool : 
@@ -88,6 +92,18 @@ def stats(data) :
             stats[key] = {
                 'true_parcentage' : round((count / len(values_bool)) * 100),
                 'false_parcentage': round(100 - (count / len(values_bool)) * 100)
+            }
+        if values_list : 
+            list_sizes = []
+            for v in values_list: 
+                if isinstance(v, str):
+                    list_sizes.append(len(eval(v)))
+                else : 
+                    list_sizes.append(len(v))
+            stats[key] = {
+                'min_size': round(min(list_sizes), 2),
+                'max_size': round(max(list_sizes),2),
+                'mean_size': mean(list_sizes)
             }
     return stats
 
@@ -101,6 +117,7 @@ data_json = load_json(file_json)
 data_xml = load_xml(file_xml)
 data_yaml = load_yaml(file_yaml)
 stats = stats(data_json)
+
 print("données CSV chargées :", data_csv)
 print("données JSON chargées :", data_json)
 print("données XML chargées :", data_xml)
