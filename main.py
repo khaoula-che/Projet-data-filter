@@ -65,17 +65,30 @@ def stats(data) :
         values = [item[key] for item in data if key in item]
         values_num = []
         for v in values : 
-           if isinstance(v, (int, float)):
+            if isinstance(v, (int,float)) :
                 values_num.append(v)
-           elif isinstance(v, str) and v.replace('.', '', 1).isdigit():
+            elif isinstance(v,str) and v.replace('.', '',1).isdigit() :
                 values_num.append(float(v))
+            
         if values_num :
             stats[key] = { 
                 'min': min(values_num), 
                 'max': max(values_num),
                 'mean': mean(values_num)
+        }
+        values_bool = []
+        for v in values : 
+            if isinstance(v,bool) or str(v).lower() in ['true', 'false']:
+                values_bool.append(v)
+        if values_bool : 
+            count = 0
+            for v in values_bool : 
+                if str(v).lower() == 'true' :
+                    count +=1
+            stats[key] = {
+                'true_parcentage' : round((count / len(values_bool)) * 100),
+                'false_parcentage': round(100 - (count / len(values_bool)) * 100)
             }
-        
     return stats
 
 file_csv = "data.csv"
