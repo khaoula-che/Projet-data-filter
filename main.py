@@ -134,20 +134,14 @@ def filter_data(data, key, value, operator) :
     data_filtered = []
     for item in data :
         if key in item : 
-            item_value = item[key]
-            if isinstance(item_value, str) and item_value.replace('.', '', 1).isdigit():
-                item_value = float(item_value) if '.' in item_value else int(item_value)
-            
-            # Conversion de value en nombre si possible
-            if isinstance(value, str) and value.replace('.', '', 1).isdigit():
-                value = float(value) if '.' in value else int(value)
-            
+            item_value = item[key]          
             if isinstance(item_value, str) and isinstance(value,str):
-                if (operator == "==" and item_value == value ) :
-                    data_filtered.append(item)
-                elif (operator == "<" and item_value < value ) :
-                    data_filtered.append(item)
-                elif (operator == ">" and item_value > value ): 
+                if (operator == "==" and item_value == value ) or \
+                   (operator == "<" and item_value < value ) or  \
+                   (operator == ">" and item_value > value ) or \
+                   (operator == "startswith" and item_value.startswith(value)) or \
+                   (operator == "endswith" and item_value.endswith(value)) or \
+                   (operator == "contains" and value in item_value) :
                     data_filtered.append(item)
 
             elif isinstance(item_value, (int,float)) :
