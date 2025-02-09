@@ -141,24 +141,40 @@ def filter_data(data, key, value, operator) :
                    (operator == ">" and item_value > value ) or \
                    (operator == "startswith" and item_value.startswith(value)) or \
                    (operator == "endswith" and item_value.endswith(value)) or \
-                   (operator == "contains" and value in item_value) :
+                   (operator == "contains" and value.lower() in item_value.lower()) :
                     data_filtered.append(item)
 
             elif isinstance(item_value, (int,float)) :
-                if (operator == "==" and item_value == value ) :
-                    data_filtered.append(item)
-                elif (operator == "<" and item_value < value ) :
-                    data_filtered.append(item)
-                elif (operator == ">" and item_value > value ): 
+                if (operator == "==" and item_value == value ) or \
+                (operator == "<" and item_value < value ) or \
+                 (operator == ">" and item_value > value ): 
                     data_filtered.append(item)
 
             elif isinstance(item_value, list)  :
-                if (operator =="<" and len(item_value) < value) :
-                    data_filtered.append(item)
-                elif (operator ==">" and len(item_value) > value):
+                if (operator =="<" and len(item_value) < value) or \
+                 (operator ==">" and len(item_value) > value) or \
+                 (operator =="min" and min(item_value) > value) or \
+                 (operator =="max" and max(item_value) > value) or \
+                 (operator =="mean" and sum(item_value) / len(item_value) > value) :
                     data_filtered.append(item)
 
     return data_filtered
+def compare_data(data, field_1, field_2,operator) :
+    data_filtered = []
+    for item in data : 
+        if field_1 in item and field_2 in item : 
+            value_1 = item[field_1]
+            value_2 = item[field_2]
+            
+            if isinstance(value_1, str) and isinstance(value_2, str) :
+                if(operator == ">" and value_1 > value_2) or \
+                (operator == "<" and value_1 < value_2  ) : 
+                    data_filtered.append(item)
+
+            if isinstance(value_1, (int,float)) and isinstance(value_2,(int,float) ) :
+                if(operator == ">" and value_1 > value_2) or \
+                (operator == "<" and value_1 < value_2  ) : 
+                    data_filtered.append(item)
 
 file_csv = "data.csv"
 file_json = "data.json"
@@ -176,16 +192,18 @@ print("Données XML chargées :", stats(data_xml))
 print("Données YAML chargées :", stats(data_yaml))
 
 print("Données CSV filtrées (firstname < 'Marie'):", filter_data(data_csv, "firstname", "Marie", "<"))
-print("Données JSON filtrées (firstname < 'Marie'):", filter_data(data_json, "firstname", "Marie", "<"))
-print("Données XML filtrées (firstname < 'Marie'):", filter_data(data_xml, "firstname", "Marie", "<"))
+print("Données JSON filtrées (firstname < 'Marie'):", filter_data(data_json,"firstname", "Marie", "<"))
+print("Données XML filtrées (firstname < 'Marie'):", filter_data(data_xml,"firstname", "Marie", "<"))
 print("Données YAML filtrées (firstname < 'Marie'):", filter_data(data_yaml, "firstname", "Marie", "<"))
 
 print("Données CSV filtrées (nombre de notes > 3):", filter_data(data_csv, "grades", 3, ">"))
 print("Données JSON filtrées (nombre de notes > 3):", filter_data(data_json, "grades", 3, ">"))
-print("Données XML filtrées (nombre de notes > 3):", filter_data(data_xml, "grades", 3, ">"))
+print("Données XML filtrées (nombre de notes > 3):", filter_data(data_xml, "grades",3, ">"))
 print("Données YAML filtrées (nombre de notes > 3):", filter_data(data_yaml, "grades", 3, ">"))
 
 print("Données CSV filtrées (age > 25):", filter_data(data_csv, "age", 25, ">"))
 print("Données JSON filtrées (age > 25):", filter_data(data_json, "age", 25, ">"))
 print("Données XML filtrées (age > 25):", filter_data(data_xml, "age", 25, ">"))
-print("Données YAML filtrées (age > 25):", filter_data(data_yaml, "age", 25, ">"))
+print("Données YAML filtrées (age > 25):", filter_data(data_yaml, "age",25, ">"))
+print("Prénoms contenat un 't' :", filter_data(data_json,"firstname", "t", "contains"))
+print("Moyenne des notes > 15 :", filter_data(data_csv, "grades", 15, "mean"))
