@@ -1,0 +1,23 @@
+[
+    {
+        "firstname": "Test",
+        "lastname": "Test",
+        "age": 26,
+        "apprentice": true,
+        "grades": [8, 19, 20, 10]
+    },
+    {
+        "firstname": "Jean",
+        "lastname": "Martin",
+        "age": 22,
+        "apprentice": false,
+        "grades": [12, 14, 6]
+    },
+    {
+        "firstname": "Marie",
+        "lastname": "Dupont",
+        "age": 21,
+        "apprentice": true,
+        "grades": [10, 13, 17]
+    }
+]

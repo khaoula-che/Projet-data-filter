@@ -1,0 +1,17 @@
+- firstname: Test
+  lastname: Test
+  age: 20
+  apprentice: true
+  grades: [15, 18, 20]
+
+- firstname: Jean
+  lastname: Martin
+  age: 22
+  apprentice: false
+  grades: [12, 14,9, 16]
+
+- firstname: Toto
+  lastname: Dupont
+  age: 21
+  apprentice: true
+  grades: [13, 13, 17]
