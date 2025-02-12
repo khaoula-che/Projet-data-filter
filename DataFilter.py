@@ -4,7 +4,9 @@ import xml.etree.ElementTree as ET
 import yaml
 import statistics
 import numpy as np
+import pprint
 
+pp = pprint.PrettyPrinter(indent=4)
 
 # charger des donnees depuis un csv et retoune une liste de dict
 def load_csv(file):
@@ -142,7 +144,7 @@ def filter_data(data, key, value, operator):
 
     numeric_values = [item[key] for item in data if key in item and isinstance(item[key], (int, float))]
     global_mean = statistics.mean(numeric_values) if numeric_values else 0
-    global_percentile = np.percentile(numeric_values, value) if numeric_values else 0
+    global_percentile_75 = np.percentile(numeric_values, 75) if numeric_values else 0
 
     for item in data:
         if key in item:
@@ -226,9 +228,15 @@ data_json = load_json(file_json)
 data_xml = load_xml(file_xml)
 data_yaml = load_yaml(file_yaml)
 
-import pprint
 
-pp = pprint.PrettyPrinter(indent=4)
+# Calculer les statistiques globales
+ages = [item["age"] for item in data_csv if "age" in item and isinstance(item["age"], (int, float))]
+prices = [item["price"] for item in data_csv if "price" in item and isinstance(item["price"], (int, float))]
+
+global_mean_age = statistics.mean(ages) if ages else 0
+global_percentile_75_price = np.percentile(prices, 75) if prices else 0
+
+
 
 print("\n *** Étudiants nommés Marie :")
 pp.pprint(filter_data(data_csv, "firstname", "Marie", "=="))
@@ -265,3 +273,10 @@ pp.pprint(filter_data(data_csv, "grades", 15, "all"))
 
 print("\n *** Étudiants ayant un nom de famille se terminant par 't' :")
 pp.pprint(filter_data(data_csv, "lastname", "t", "endswith"))
+
+print(f"\n *** Étudiants plus vieux que la moyenne ({global_mean_age:.2f} ans) :")
+pp.pprint(filter_data(data_csv, "age", global_mean_age, "above_mean"))
+
+print(f"\n *** Items coûtant moins que 75% des autres (seuil : {global_percentile_75_price:.2f}) :")
+pp.pprint(filter_data(data_csv, "price", global_percentile_75_price, "below_percentile"))
+
