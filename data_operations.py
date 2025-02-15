@@ -12,17 +12,23 @@ def show_stats(data):
     for key in data[0].keys():
         values = [item[key] for item in data if key in item]
         numeric_values = []
+        
         for v in values:
+            if isinstance(v, list): 
+                continue
             try:
                 numeric_values.append(float(v))
             except ValueError:
-                continue
+                continue  
+        
         if numeric_values:
             stats_result[key] = f"Min: {min(numeric_values)}, Max: {max(numeric_values)}, Moyenne: {sum(numeric_values) / len(numeric_values):.2f}"
     
     if stats_result:
         result_text = "\n".join([f"{key}: {value}" for key, value in stats_result.items()])
         messagebox.showinfo("Statistiques", result_text)
+    else:
+        messagebox.showinfo("Info", "Aucune donnée numérique à analyser.")
 
 def filter_data(app):
     if not app.data:
