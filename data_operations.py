@@ -158,10 +158,23 @@ def sort_data(app):
     Button(sort_window, text="Annuler", command=sort_window.destroy).pack(pady=5)
 
     sort_window.mainloop()
-def reset_data(app):
-    if hasattr(app, 'original_data'):
-        app.data = app.original_data.copy()
-        app.show_data()
-        messagebox.showinfo("Réinitialisation", "Filtre ou tri annulé, les données originales sont restaurées.")
+def reset_all(self):
+            """Réinitialiser toutes les données, tris et filtres"""
+            self.data = self.original_data.copy()  
+            self.show_data()  
+            messagebox.showinfo("Réinitialisation", "Toutes les actions ont été annulées.")
+
+def reset_sort(self):
+    """Annule uniquement les tris effectués et restaure les données d'origine"""
+    if hasattr(self, 'original_data'):
+        self.data = self.original_data.copy()  
+        self.show_data() 
+        messagebox.showinfo("Réinitialisation du tri", "Le tri a été annulé.")
     else:
-        messagebox.showwarning("Avertissement", "Aucune action à annuler.")
+        messagebox.showwarning("Avertissement", "Aucun tri à annuler.")
+
+
+def reset_filters(self):
+        """Annuler uniquement les filtres appliqués"""
+        self.show_data()  
+        messagebox.showinfo("Réinitialisation des filtres", "Les filtres ont été annulés.")
