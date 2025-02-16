@@ -5,21 +5,17 @@ import yaml
 
 
 def load_csv(file):
-    data = []
-    with open(file, 'r', encoding='utf-8') as f:
-        reader = csv.DictReader(f)
-        for row in reader:
-            data.append(row)
-    return data
+    with open(file, 'r', encoding='utf-8', newline='') as f:
+        return list(csv.DictReader(f))  # Utilisation directe sans boucle
 
 
 def save_csv(file, data):
     if not data:
-        print("Aucune donnees à sauvegarder")
+        print("Aucune donnée à sauvegarder")
         return
     keys = data[0].keys()
-    with open(file, 'w', encoding='utf-8') as f:
-        writer = csv.DictWriter(f, file=keys)
+    with open(file, 'w', encoding='utf-8', newline='') as f:
+        writer = csv.DictWriter(f, fieldnames=keys)
         writer.writeheader()
         writer.writerows(data)
 
@@ -37,27 +33,23 @@ def save_json(file, data):
 def load_xml(file):
     tree = ET.parse(file)
     root = tree.getroot()
-    data = []
-    for i in root:
-        item = {child.tag: child.text for child in i}
-        data.append(item)
-    return data
+    return [{child.tag: child.text for child in item} for item in root]  # Utilisation de la compréhension de liste
 
 
 def save_xml(file, data):
     root = ET.Element("root")
     for i in data:
         item = ET.SubElement(root, "item")
-        for key, value in item.items():
+        for key, value in i.items():
             child = ET.SubElement(item, key)
-            child.text = str(value)
+            child.text = str(value) if value is not None else ""  # Éviter "None"
     tree = ET.ElementTree(root)
-    tree.write(file)
+    tree.write(file, encoding="utf-8", xml_declaration=True)
 
 
 def load_yaml(file):
     with open(file, 'r', encoding='utf-8') as f:
-        return yaml.safe_load(f)
+        return yaml.safe_load(f) or []
 
 
 def save_yaml(file, data):
