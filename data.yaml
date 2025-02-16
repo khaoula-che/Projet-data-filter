@@ -8,7 +8,7 @@
   lastname: Martin
   age: 22
   apprentice: false
-  grades: [12, 14,9, 16]
+  grades: [12, 14, 9, 16]
 
 - firstname: Toto
   lastname: Dupont
