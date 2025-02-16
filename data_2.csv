@@ -1,0 +1,4 @@
+firstname,lastname,age,apprentice,grades
+Test3,Test,28,True,"[15, 18, 14]"
+Test4,Martin,24,False,"[12, 10, 14]"
+Test5,Dupont,21,True,"[16, 17, 13,19,13]"

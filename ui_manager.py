@@ -84,6 +84,9 @@ class DataManagerApp:
                                                                                               pady=10)
         tk.Button(button_frame, text="Annuler les Filtres", command=lambda: reset_filters(self)).grid(row=1, column=2,
                                                                                                       padx=10, pady=10)
+        tk.Button(button_frame, text="Charger Nouveau", command=lambda: self.load_data(replace_existing=True)).grid(row=1, column=3, padx=10, pady=10)
+
+        tk.Button(button_frame, text="Ajouter Données", command=lambda: self.load_data(replace_existing=False)).grid(row=1, column=4, padx=10, pady=10)
 
         self.tree = ttk.Treeview(self.root)
         self.tree.pack(pady=10, fill=tk.BOTH, expand=True)
@@ -104,27 +107,38 @@ class DataManagerApp:
                 row = tuple(item)
             self.tree.insert("", tk.END, values=row)
 
-    def load_data(self):
+    def load_data(self, replace_existing=True):
+        """Charge un fichier et remplace ou ajoute des données existantes."""
         file_path = filedialog.askopenfilename(title="Sélectionnez un fichier",
                                                filetypes=[("Fichiers CSV", "*.csv"), ("Fichiers JSON", "*.json"),
                                                           ("Fichiers XML", "*.xml"), ("Fichiers YAML", "*.yaml")])
         if not file_path:
             return
+
         file_type = file_path.split('.')[-1].lower()
+        new_data = []
+
         if file_type == "csv":
-            self.data = load_csv(file_path)
+            new_data = load_csv(file_path)
         elif file_type == "json":
-            self.data = load_json(file_path)
+            new_data = load_json(file_path)
         elif file_type == "xml":
-            self.data = load_xml(file_path)
+            new_data = load_xml(file_path)
         elif file_type == "yaml":
-            self.data = load_yaml(file_path)
+            new_data = load_yaml(file_path)
         else:
             messagebox.showerror("Erreur", "Format non supporté.")
             return
 
-        self.show_data()
-        self.load_save_button.config(text="Sauvegarder les Données")
+        if new_data:
+            if replace_existing:
+                self.data = new_data  # remplcer les anciennes données
+            else:
+                self.data.extend(new_data)  # ajouter les nouvelles données sans supprimer les anciennes
+
+            self.show_data()
+            self.load_save_button.config(text="Sauvegarder les Données")
+            messagebox.showinfo("Succès", "Données mises à jour avec succès !")
 
     def show_data(self):
         if not self.data:
