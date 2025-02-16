@@ -52,7 +52,7 @@ def filter_data(app):
 
     operator_var = StringVar(value="==")
     operators = ["==", "!=", "<", ">", "<=", ">=", "startswith", "endswith", "contains",
-                 "above_mean", "below_percentile", "len", "min", "max", "mean", "all", "at_least_X_above", "firstname_before_lastname"]
+                 "above_mean", "below_percentile", "len", "min", "max", "mean", "all", "at_least_X_above", "firstname_before_lastname", "computed_value"]
 
     Label(filter_window, text="Sélectionnez l'opérateur :").pack(pady=5)
     operator_menu = ttk.Combobox(filter_window, textvariable=operator_var, values=operators)
@@ -78,14 +78,19 @@ def filter_data(app):
         value = value_entry.get().strip()
         operator = operator_var.get()
 
-        # Ingnorerr `value` si l'opérateur ne nécessite pas de valeur utilisateur
+        # gestion pour 'above_mean' et 'below_percentile' : ingorer `value` si l'opérateur ne nécessite pas de valeur utilisateur
         if operator in ["above_mean", "below_percentile"]:
-            value = None  # Forcer à None pour éviter tout problème
+            value = None
 
-        # Ingnorerr key et value si l'opérateur est "firstname_before_lastname"
+        # gestion pour 'firstname_before_lastname' : ingorer key et value si l'opérateur est "firstname_before_lastname"
         key_to_use = key if operator != "firstname_before_lastname" else None
         value_to_use = value if operator not in ["firstname_before_lastname", "above_mean",
                                                  "below_percentile"] else None
+
+        # gestion pour 'computed_value': ingnorer la cle pour computed_value
+        if operator == "computed_value":
+            key_to_use = None  # Clé inutile pour `computed_value`
+
 
         #  verifications et conversion de X
         x_value = None
@@ -95,6 +100,7 @@ def filter_data(app):
             except ValueError:
                 messagebox.showerror("Erreur", "Veuillez entrer un nombre valide pour X.")
                 return
+
 
         # Execution du filtrage
         filtered_data = filter_data_logic(app.data, key_to_use, value_to_use, operator, x_value)
@@ -108,7 +114,7 @@ def filter_data(app):
                                 f"Aucun élément ne correspond à '{operator}' avec {key_display} et {value_display}.")
             return
 
-        # Mettre à jour les données
+        # mettre à jour les données
         app.data = filtered_data
         app.show_data()
         filter_window.destroy()
@@ -135,7 +141,7 @@ def filter_data_logic(data, key, value, operator, x_value=None):
     print(f"DEBUG: key={key}, value={value}, operator={operator}")
     data_filtered = []
 
-    # 🔹 **Cas particulier : le filtrage par "firstname_before_lastname"**
+    # Cas particulier : le filtrage par "firstname_before_lastname"
     if operator == "firstname_before_lastname":
         for item in data:
             if "firstname" in item and "lastname" in item:
@@ -146,9 +152,9 @@ def filter_data_logic(data, key, value, operator, x_value=None):
                 if firstname and lastname and firstname < lastname:
                     data_filtered.append(item)
 
-        return data_filtered  # Retour immédiat
+        return data_filtered  # retour immédiat
 
-    # 🔹 **Gestion des statistiques globales (`above_mean`, `below_percentile`)**
+    # Cas particulier : le filtrage sur les statistiques globales (`above_mean`, `below_percentile`)
     if operator in ["above_mean", "below_percentile"]:
         print(f"DEBUG: Liste des valeurs avant conversion: {[item[key] for item in data if key in item]}")
 
@@ -179,22 +185,44 @@ def filter_data_logic(data, key, value, operator, x_value=None):
         print(f"DEBUG: Moyenne globale = {global_mean}")
         print(f"DEBUG: 75e percentile = {global_percentile_75}")
 
-    # 🔹 **Boucle sur les éléments de `data`**
+    # Cas particulier : le filtrage sur une combinaison de champs
+    if operator == "computed_value":
+        try:
+            threshold = float(value)  # Vérifier que `value` est un nombre valide
+        except ValueError:
+            messagebox.showerror("Erreur", f"Le seuil '{value}' n'est pas un nombre valide.")
+            return []
+
+        for item in data:
+            if "price" in item and "quantity" in item:  # Vérifier l'existence des clés
+                price = try_convert_float(item["price"])
+                quantity = try_convert_float(item["quantity"])
+
+                if price is not None and quantity is not None:
+                    computed_value = price * quantity
+                    print(f"DEBUG: ({price} * {quantity}) = {computed_value}")
+
+                    if computed_value > threshold:
+                        data_filtered.append(item)
+
+        return data_filtered  # Retourner les résultats immédiatement
+
+    # Boucle sur les éléments de data
     for item in data:
         print(f"DEBUG: item={item}")
         if key in item:
             item_value = item[key]
 
-            # ✅ **Conversion correcte des listes**
+            # Conversion des listes
             if isinstance(item_value, str) and item_value.startswith("[") and item_value.endswith("]"):
                 try:
                     item_value = ast.literal_eval(item_value)
                 except (ValueError, SyntaxError):
-                    continue  # Si erreur, on passe à l'élément suivant
+                    continue
 
             item_value_converted = try_convert_float(item_value)
 
-            # 🔹 **Filtrage `above_mean` et `below_percentile`**
+            # Filtrage above_mean et below_percentile
             if operator in ["above_mean", "below_percentile"]:
                 if isinstance(item_value, list):
                     item_mean = sum(try_convert_float(x) for x in item_value if try_convert_float(x) is not None) / len(item_value)
@@ -206,7 +234,7 @@ def filter_data_logic(data, key, value, operator, x_value=None):
                 elif operator == "below_percentile" and item_mean is not None and item_mean < global_percentile_75:
                     data_filtered.append(item)
 
-            # 🔹 **Gestion des nombres (`age`, `grades`, etc.)**
+            # Gestion des nombres (age, price ...)
             elif isinstance(item_value_converted, (int, float)) and operator in ["==", "!=", "<", ">", "<=", ">=", "min", "max"]:
                 try:
                     value = float(value)
@@ -223,7 +251,7 @@ def filter_data_logic(data, key, value, operator, x_value=None):
                     messagebox.showerror("Erreur", f"La valeur '{value}' n'est pas un nombre valide.")
                     return []
 
-            # 🔹 **Gestion des chaînes de caractères (`firstname`, `lastname`, etc.)**
+            # Gestion des chaines de cara (firstname, lastname...)
             elif isinstance(item_value, str):
                 try:
                     if operator in ["==", "!="]:
@@ -263,14 +291,14 @@ def filter_data_logic(data, key, value, operator, x_value=None):
                     messagebox.showerror("Erreur", f"La valeur '{value}' n'est pas valide pour filtrer les chaînes de caractères.")
                     return []
 
-            # 🔹 **Gestion des listes**
+            # Gestion des listes
             elif isinstance(item_value, list):
                 try:
                     value = try_convert_float(value)
                     if value is None or not isinstance(value, (int, float)):
                         raise ValueError(f"Valeur '{value}' invalide pour le filtrage.")
 
-                    # 🔹 **Filtrage basé sur la longueur de la liste**
+                    # Filtrage basé sur la longueur de la liste
                     if (operator == "==" and len(item_value) == value) or \
                             (operator == "!=" and len(item_value) != value) or \
                             (operator == "<" and len(item_value) < value) or \
@@ -279,7 +307,7 @@ def filter_data_logic(data, key, value, operator, x_value=None):
                             (operator == ">=" and len(item_value) >= value):
                         data_filtered.append(item)
 
-                    # 🔹 **Filtrage basé sur les valeurs contenues dans la liste**
+                    # Filtrage basé sur les valeurs contenues dans la liste
                     elif (operator == "contains" and value in item_value) or \
                        (operator == "min" and min(item_value) >= value) or \
                        (operator == "max" and max(item_value) > value) or \
