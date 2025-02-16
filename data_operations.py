@@ -124,11 +124,18 @@ def filter_data(app):
 
 
 
+def try_convert_float(value):
+    """Convertit une valeur en float si possible, sinon retourne None."""
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return None
+
 def filter_data_logic(data, key, value, operator, x_value=None):
     print(f"DEBUG: key={key}, value={value}, operator={operator}")
     data_filtered = []
 
-    # Cas particulier : le filtrage par "firstname_before_lastname"
+    # 🔹 **Cas particulier : le filtrage par "firstname_before_lastname"**
     if operator == "firstname_before_lastname":
         for item in data:
             if "firstname" in item and "lastname" in item:
@@ -139,9 +146,9 @@ def filter_data_logic(data, key, value, operator, x_value=None):
                 if firstname and lastname and firstname < lastname:
                     data_filtered.append(item)
 
-        return data_filtered
+        return data_filtered  # Retour immédiat
 
-    # gestion des statistiques globales (`above_mean`, `below_percentile`)
+    # 🔹 **Gestion des statistiques globales (`above_mean`, `below_percentile`)**
     if operator in ["above_mean", "below_percentile"]:
         print(f"DEBUG: Liste des valeurs avant conversion: {[item[key] for item in data if key in item]}")
 
@@ -149,11 +156,12 @@ def filter_data_logic(data, key, value, operator, x_value=None):
         for item in data:
             if key in item:
                 raw_value = item[key]
+
                 if isinstance(raw_value, str) and raw_value.startswith("[") and raw_value.endswith("]"):
                     try:
-                        raw_value = ast.literal_eval(raw_value)  # conversion des listes
+                        raw_value = ast.literal_eval(raw_value)  # Convertir en liste
                     except (ValueError, SyntaxError):
-                        continue
+                        continue  # Ignorer en cas d'erreur
 
                 if isinstance(raw_value, list):
                     numeric_values.extend([try_convert_float(x) for x in raw_value if try_convert_float(x) is not None])
@@ -171,13 +179,13 @@ def filter_data_logic(data, key, value, operator, x_value=None):
         print(f"DEBUG: Moyenne globale = {global_mean}")
         print(f"DEBUG: 75e percentile = {global_percentile_75}")
 
-    # boucle sur les éléments de `data`
+    # 🔹 **Boucle sur les éléments de `data`**
     for item in data:
         print(f"DEBUG: item={item}")
         if key in item:
             item_value = item[key]
 
-            # Conversion correcte des listes
+            # ✅ **Conversion correcte des listes**
             if isinstance(item_value, str) and item_value.startswith("[") and item_value.endswith("]"):
                 try:
                     item_value = ast.literal_eval(item_value)
@@ -186,7 +194,7 @@ def filter_data_logic(data, key, value, operator, x_value=None):
 
             item_value_converted = try_convert_float(item_value)
 
-            # Filtrage `above_mean` et `below_percentile`
+            # 🔹 **Filtrage `above_mean` et `below_percentile`**
             if operator in ["above_mean", "below_percentile"]:
                 if isinstance(item_value, list):
                     item_mean = sum(try_convert_float(x) for x in item_value if try_convert_float(x) is not None) / len(item_value)
@@ -198,7 +206,24 @@ def filter_data_logic(data, key, value, operator, x_value=None):
                 elif operator == "below_percentile" and item_mean is not None and item_mean < global_percentile_75:
                     data_filtered.append(item)
 
-            # Gestion des chaines de cara
+            # 🔹 **Gestion des nombres (`age`, `grades`, etc.)**
+            elif isinstance(item_value_converted, (int, float)) and operator in ["==", "!=", "<", ">", "<=", ">=", "min", "max"]:
+                try:
+                    value = float(value)
+                    if (operator == "==" and item_value_converted == value) or \
+                       (operator == "!=" and item_value_converted != value) or \
+                       (operator == "<" and item_value_converted < value) or \
+                       (operator == ">" and item_value_converted > value) or \
+                       (operator == "<=" and item_value_converted <= value) or \
+                       (operator == ">=" and item_value_converted >= value) or \
+                       (operator == "min" and item_value_converted >= value) or \
+                       (operator == "max" and item_value_converted <= value):
+                        data_filtered.append(item)
+                except ValueError:
+                    messagebox.showerror("Erreur", f"La valeur '{value}' n'est pas un nombre valide.")
+                    return []
+
+            # 🔹 **Gestion des chaînes de caractères (`firstname`, `lastname`, etc.)**
             elif isinstance(item_value, str):
                 try:
                     if operator in ["==", "!="]:
@@ -238,14 +263,14 @@ def filter_data_logic(data, key, value, operator, x_value=None):
                     messagebox.showerror("Erreur", f"La valeur '{value}' n'est pas valide pour filtrer les chaînes de caractères.")
                     return []
 
-            # Gestion des listes
+            # 🔹 **Gestion des listes**
             elif isinstance(item_value, list):
                 try:
                     value = try_convert_float(value)
                     if value is None or not isinstance(value, (int, float)):
                         raise ValueError(f"Valeur '{value}' invalide pour le filtrage.")
 
-                    # Filtrage basé sur la longueur de la liste
+                    # 🔹 **Filtrage basé sur la longueur de la liste**
                     if (operator == "==" and len(item_value) == value) or \
                             (operator == "!=" and len(item_value) != value) or \
                             (operator == "<" and len(item_value) < value) or \
@@ -254,7 +279,7 @@ def filter_data_logic(data, key, value, operator, x_value=None):
                             (operator == ">=" and len(item_value) >= value):
                         data_filtered.append(item)
 
-                    # Filtrage basé sur les valeurs contenues dans la liste
+                    # 🔹 **Filtrage basé sur les valeurs contenues dans la liste**
                     elif (operator == "contains" and value in item_value) or \
                        (operator == "min" and min(item_value) >= value) or \
                        (operator == "max" and max(item_value) > value) or \
@@ -266,21 +291,6 @@ def filter_data_logic(data, key, value, operator, x_value=None):
                     return []
 
     return data_filtered
-
-
-def try_convert_float(value):
-    #Convertir une valeur en float si possible, sinon renvoie none pour éviter les erreurs
-    if isinstance(value, (int, float)):
-        return value  # retourz directement les nombres
-
-    if isinstance(value, str):
-        try:
-            return float(value)  # convertir en float
-        except ValueError:
-            return None  # renvoie none si la conversion sinoj
-
-    return None  # renvoie None si le type est inconnu
-
 
 
 def sort_data(app):

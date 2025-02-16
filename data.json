@@ -1,23 +1,46 @@
 [
   {
-    "firstname": "Test",
-    "lastname": "Test",
-    "age": 26,
-    "apprentice": true,
-    "grades": [8, 19, 20, 10]
-  },
-  {
-    "firstname": "Jean",
-    "lastname": "Martin",
+    "firstname": "John",
+    "lastname": "Doe",
     "age": 22,
-    "apprentice": false,
-    "grades": [12, 14, 6]
+    "apprentice": true,
+    "grades": [12, 34],
+    "name": "Book",
+    "category": "Stationery",
+    "price": 15.5,
+    "quantity": 10
   },
   {
-    "firstname": "Marie",
-    "lastname": "Dupont",
-    "age": 21,
+    "firstname": "Jane",
+    "lastname": "Smith",
+    "age": 20,
+    "apprentice": false,
+    "grades": [14, 28],
+    "name": "Pen",
+    "category": "Stationery",
+    "price": 1.2,
+    "quantity": 200
+  },
+  {
+    "firstname": "Alice",
+    "lastname": "Johnson",
+    "age": 23,
     "apprentice": true,
-    "grades": [10, 13, 17]
+    "grades": [10, 30],
+    "name": "Chair",
+    "category": "Furniture",
+    "price": 25.0,
+    "quantity": 15
+  },
+  {
+    "firstname": "Bob",
+    "lastname": "Lee",
+    "age": 21,
+    "apprentice": false,
+    "grades": [11, 26],
+    "name": "Table",
+    "category": "Furniture",
+    "price": 55.5,
+    "quantity": 7
   }
 ]
